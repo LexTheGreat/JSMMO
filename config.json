@@ -1,0 +1,5 @@
+{
+    "WorldName": "JSMMO",
+    "Port": 7001,
+    "SpawnPos": { "x": 100, "y": 100 }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "JSMMO",
+  "description": "JSMMO",
+  "dependencies": {
+    "express": "*",
+    "socket.io": "*"
+  }
+}
