@@ -1,92 +1,133 @@
-var express = require('express'), http = require('http'), pp = express(), fs = require('fs'), rqWorld = require('./world'), io = require('socket.io')
-var app = new express();
-app.use(express.static(__dirname + '/public'));
-var server = http.createServer(app).listen(3232);
-console.log('Starting Server on port ', 3232);
-	
-var world = new rqWorld();
-var io = io.listen(server);
-var lastWorldState = null
+var Player = require('./nodemmo/objects/player');
 
-io.sockets.on('connection', function(socket) {
-	world.onConnect(socket.id);
-	socket.emit('connected', socket.id);
-	socket.emit('update', lastWorldState)
-	
-	socket.on('login', function(data) {
-		if(!world.isPlaying(world.getPlayerID(data.Username))) {
-			world.onLogin(socket.id, data.Username, data.Password);
-			socket.emit('login', true);
-		} else {
-			socket.emit('login', false);
-		}
-	});
-
-	socket.on('movement', function(data) {
-		if(world.isPlaying(socket.id)) {
-			if(!(data >= 0 && data <= 3)) {
-				world.kickPlayer(socket, "Stop trying to cheat!")
-				return
-			}
-			world.onMovement(socket.id, data);
-		}
-	});
-
-	socket.on('message', function(data) {
-		var safeMessage = data.replace('"', "''").replace('\\', '/')
-		if(!world.onMessage(socket, safeMessage)) {
-			io.sockets.clients().forEach(function(psocket) {
-				if(world.isPlaying(psocket.id)) {
-					console.log(world.Players[socket.id].Username + ":", safeMessage);
-					psocket.emit('message', { name:world.Players[socket.id].Username, message:safeMessage});
-				}
-			});
-		}
-	});
-
-	socket.on('disconnect', function() {
-		io.sockets.emit('message', { name:'Server', message: world.Players[socket.id].Username + ' has vanished'});
-		world.onLogout(socket.id);
-	});
-});
-
-world.Create(function(worldState) {
-	if(lastWorldState != worldState) {
-		io.sockets.clients().forEach(function(socket) {
-			if(world.isPlaying(socket.id)) {
-				socket.emit('update', worldState);
-			} else {
-				socket.emit('update', false);
-			}
-		});
-		lastWorldState = worldState
-	}
-});
-
-io.set("log level", 1);
-
-
-// Other
-if (typeof Array.prototype.contains != 'function') {
-	Array.prototype.contains = function(obj) {
-	    var i = this.length;
-	    while (i--) {
-	        if (this[i] === obj) {
-	            return true;
-	        }
-	    }
-	    return false;
+var Server = function() {
+	this.GameObjects = {
+		parent: this,
+		Items: {},
+		Players: {},
+		Maps: {},
 	};
-}
 
-if (typeof String.prototype.endsWith != 'function') {
-  String.prototype.endsWith = function (str){
-    return this.slice(-str.length) == str;
-  };
-}
+	this.pFunc = {
+		parent: this,
+		// Get Player
+		// Player Name Only. getPlayerID(name) -> Player ID | Can't be offline
+		getPlayerID: function(Name) {
+			for(var object in this.parent.GameObjects.Players) {
+				var player = this.parent.GameObjects.Players[object];
+				if(player.Username == Name) return object
+			}
+			return null
+		},
+		// Player ID Only. getPlayer(getPlayerID(name)) -> Player Object | Can't be offline
+		getPlayer: function(id) {
+			var player = this.parent.GameObjects.Players[id];
+			return player
+		},
+		// Player Only. isPlaying(getPlayer(getPlayerID(name))) -> Bool
+		isPlaying: function(player) {
+			if(player != null) {
+				if(player.isLoged) { return true };
+			}
+			return false
+		},
+		// Do Stuff to Player
+		sendMessage: function(Socket, _Message) {
+			var Player = this.getPlayer(Socket.id);
+			for(var gPlayerID in this.parent.GameObjects.Players) {
+				var gPlayer = this.parent.GameObjects.Players[gPlayerID]
+				if(this.isPlaying(gPlayer) && Player.Map == gPlayer.Map) {
+					var gSocket = gPlayer.Socket;
+					gSocket.emit('onMessage', {Sender:Player.Username, Message:_Message});
+				}
+			}
 
-if (typeof String.prototype.startsWith != 'function') {
-  String.prototype.startsWith = function (str){
-    return this.slice(0, str.length) == str;
-  };
-}
+			Global.writeLine(Player.Username, ":", _Message);
+		},
+		sendPlayers: function(Socket) {
+			var Player = this.parent.GameObjects.Players[Socket.id];
+			if(this.isPlaying(Player)) {
+				var sfPlayers =[];
+				for(var gPlayerID in this.parent.GameObjects.Players) {
+					var gPlayer = this.parent.GameObjects.Players[gPlayerID]
+					if(this.isPlaying(gPlayer) && Player.Map == gPlayer.Map) {
+						sfPlayers.push({id:gPlayer.id, Username:gPlayer.Username, Sprite:gPlayer.Sprite, Vittles:gPlayer.Vittles, Nourishment:gPlayer.Nourishment, Position:gPlayer.Position});
+					}
+				}
+				Socket.emit("onPlayers", {Players:sfPlayers});
+			}
+		},
+	};
+
+	this.Network = {
+		parent: this,
+		kickPlayer: function(Socket, reason) {
+			// TODO Reason
+			Socket.disconnect();
+		},
+		onMessage: function(Socket, Message) {
+			
+
+			/*if(Message.startsWith("!")) {
+				var Command = Message.substring(1).split("-");
+				switch(Command[0].toLowerCase()) {
+					case "test":
+						this.parent.pFunc.sendMessage(Socket, "Server", "Test Done.");
+					break;
+					default:
+						this.parent.pFunc.sendMessage(Socket, "Server", "Invaild Command.");
+					break;
+				}
+			}*/
+		},
+		onConnect: function(Socket) {
+			var player = new Player(); this.parent.GameObjects.Players[Socket.id] = player; // Create Blank player, has not loged in
+		},
+		onLogin: function(Socket, username, password) {
+			// No password check yet, nothing is saved.
+			var player = new Player();
+			player.Username = username;
+			player.isLoged = true;
+
+			this.parent.GameObjects.Players[Socket.id] = player;
+	  	},
+	  	onLogout: function(Socket) {
+	  		// Save this.Players[id];
+	    	delete this.parent.GameObjects.Players[Socket.id];
+	  	},
+	  	onMovement: function(Socket, dir) {
+	  		var player = this.parent.GameObjects.Players[Socket.id];
+	  		if(player == 'undefined') return;
+
+	  		var movX = 0; var movY = 0;
+	  		switch(dir) {
+	  			case 0:
+	  				movY = 1
+	  				break;
+	  			case 1:
+	  				movX = -1
+	  				break;
+	  			case 2:
+	  				movX = 1
+	  				break;
+	  			case 3:
+	  				movY = -1
+	  				break;
+	  		}
+	  		if(dir == -1) {
+	  			player.endAni();
+	  		} else {
+	  			player.chgDir(dir);player.moveX(movX*5);player.moveY(movY*5);player.nextAni();
+	  		}
+	  		
+	  	},
+	}
+
+};
+
+Server.prototype = {
+
+};
+
+
+module.exports = Server;

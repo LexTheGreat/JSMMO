@@ -1,8 +1,9 @@
 {
-  "name": "JSMMO",
-  "description": "JSMMO",
+  "name": "NodeMMO",
+  "description": "NodeMMO",
   "dependencies": {
     "express": "*",
-    "socket.io": "*"
+    "socket.io": "*",
+    "moment": "*"
   }
 }
