@@ -94,9 +94,9 @@ window.GameEngine = function() {
 		// Objects
 		drawFPS: function(ctx, fps) {
 			var color = "green";
-			if(fps < 40) { 
+			if(fps < 20) { 
 				color = "yellow";
-			} else if(fps < 20) {
+			} else if(fps < 10) {
 				color = "red";
 			}
   			this.drawText(ctx, "FPS: " + fps, 30, 15, color);
@@ -125,12 +125,17 @@ window.GameEngine = function() {
 
 	this.GameLoop = {
 		parent: this,
+		MovementCount: 0,
 		update: function() {
 			var self = this;
-			requestAnimationFrame(function() {self.update()});
-			Network.sendMovement(Dir);
+			//requestAnimationFrame(function() {self.update()});
+			setInterval(function() {
+				if(isMoving) {
+					Network.sendMovement(Dir);
+				}
 
-			this.parent.Render.draw();
+ 				self.parent.Render.draw();
+    		}, 1000/32);
 		}
 	};
 
@@ -182,6 +187,7 @@ function del(array, obj) {
 }
 
 var Dir = -1;
+var isMoving = false;
 function onKeyDown(event) {
 	var self = this;
 	var code = event.keyCode || event.which;
@@ -203,6 +209,10 @@ function onKeyDown(event) {
 			if(Dir == -1) Dir = 1;
 			break;
 	}
+
+	if(code == 83 || code == 68 || code == 87 || code == 65) {
+		isMoving = true
+	}
 }
 
 function onKeyUp(event) {
@@ -214,6 +224,7 @@ function onKeyUp(event) {
 	// Movement Keys
 	if(code == 83 || code == 68 || code == 87 || code == 65) {
 		Dir = -1;
+		isMoving = false
 	}
 }
 

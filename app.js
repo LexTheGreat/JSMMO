@@ -1,14 +1,18 @@
 var GlobalObject = require("./nodemmo/global");
 var Player = require('./nodemmo/objects/player');
 var ServerCore = require("./server");
+var ConsoleLib = require("./consolelib");
 
 var Global = new GlobalObject();
 var GameServer = new ServerCore();
+var NConsole = new ConsoleLib();
 
 
-Global.writeLine("===================");
+NConsole.writeLine("===================");
+NConsole.writeLine("Working Server.....");
 Global.setupServer("public", 3232);
-Global.writeLine("===================");
+NConsole.writeLine("-------------------");
+
 
 // Prototype Funcs
 if (typeof Array.prototype.contains != 'function') {
@@ -44,30 +48,28 @@ if (typeof String.prototype.startsWith != 'function') {
 }*/
 var ClientSocket = {};
 Global.Server.sockets.on('connection', function(socket) {
-	Global.writeLine("[" + socket.id + ":connection] Socket Connected!");
+	NConsole.writeLine("[" + socket.id + ":connection] Socket Connected!");
 	ClientSocket[socket.id] = socket;
 	GameServer.Network.onConnect(socket.id);
 	socket.emit('onConnect', socket.id);
 
 	socket.on('onLogin', function(data) {
 		if(typeof data.Username != 'string' || typeof data.Password != "string") {
-			//Global.writeLine("Login Test: False | Not String");
+			//NConsole.writeLine("Login Test: False | Not String");
 			socket.emit('onLogin', "Incorect Data. Kicked! (Stop Trying to Cheat!)");
-			Global.writeLine("[" + socket.id + ":onLogin]: Kicked for Incorect login data.");
+			NConsole.writeLine("[" + socket.id + ":onLogin]: Kicked for Incorect login data.");
 			GameServer.Network.kickPlayer(socket);
 			return;
 		}
 		if((data.Username.length <= 0 || data.Username.length > 12) || (data.Password.length < 6 || data.Password.length > 12)) { 
-			//Global.writeLine("Login Test: False | Username or Password To long");
-			Global.writeLine("[" + socket.id + ":onLogin]: Username or Password length incorect.");
+			//NConsole.writeLine("Login Test: False | Username or Password To long");
+			NConsole.writeLine("[" + socket.id + ":onLogin]: Username or Password length incorect.");
 			socket.emit('onLogin', "Username or Password length incorect.");
 			return;
 		}
 
 		if(!GameServer.pFunc.isPlaying(GameServer.pFunc.getPlayerID(data.Username))) {
-			Global.writeLine("[" + socket.id + ":onLogin]: Login Successful!");
 			GameServer.Network.onLogin(socket, data.Username, data.Password);
-			socket.emit('onLogin', true);
 		}
 	});
 
@@ -81,14 +83,15 @@ Global.Server.sockets.on('connection', function(socket) {
 			socket.emit('popup', "Incorect Data. Kicked! (Stop Trying to Cheat!)");
 			GameServer.Network.kickPlayer(socket);
 			return;
-		}
-
+		}		
 		GameServer.Network.onMovement(socket, data);
 	});
 
 	socket.on('disconnect', function() {
-		Global.writeLine("[" + socket.id + ":disconnect]: Disconnected!");
-		GameServer.Network.onLogout(socket);
+		NConsole.writeLine("[" + socket.id + ":disconnect]: Disconnected!");
+		if(typeof GameServer.GameObjects.Players[socket.id] != "undefined") {
+			GameServer.Network.onLogout(socket);
+		}
 		delete ClientSocket[socket.id];
 	});
 });

@@ -1,6 +1,14 @@
 var Player = require('./nodemmo/objects/player');
+var DatabaseObject = require("./nodemmo/database");
+
+
+var ConsoleLib = require("./consolelib");
+var NConsole = new ConsoleLib();
+var Database = new DatabaseObject();
 
 var Server = function() {
+	Database.open("server.db");
+
 	this.GameObjects = {
 		parent: this,
 		Items: {},
@@ -66,8 +74,6 @@ var Server = function() {
 			Socket.disconnect();
 		},
 		onMessage: function(Socket, Message) {
-			
-
 			/*if(Message.startsWith("!")) {
 				var Command = Message.substring(1).split("-");
 				switch(Command[0].toLowerCase()) {
@@ -85,19 +91,43 @@ var Server = function() {
 		},
 		onLogin: function(Socket, username, password) {
 			// No password check yet, nothing is saved.
-			var player = new Player();
-			player.Username = username;
-			player.isLoged = true;
+			var player = "";
+			var self = this;
+			Database.isNew(username, function(userisNew) { 
+				if(userisNew) {
+					player = new Player();
+					player.Username = username;
+					player.Password = password;
+					player.isLoged = true;
+					NConsole.writeLine("[" + Socket.id + ":onLogin]: New Account!");
+					NConsole.writeLine("[" + Socket.id + ":onLogin]: Login Succesful!");
+					Socket.emit('onLogin', true);
+					self.parent.GameObjects.Players[Socket.id] = player;
+				} else {
+					Database.loadPlayer(username, password, function(playerdata) {
+						if(playerdata) {
+							NConsole.writeLine("[" + Socket.id + ":onLogin]: Load Account!");
+							NConsole.writeLine("[" + Socket.id + ":onLogin]: Login Succesful!");
+							Socket.emit('onLogin', true);
+							self.parent.GameObjects.Players[Socket.id] = playerdata;
+						} else {
+							Socket.emit('onLogin', "Incorect Username or Password!");
+							NConsole.writeLine("[" + Socket.id + ":onLogin]: Login Failed | Incorect Creds!");
+						}
+					});
+				}
 
-			this.parent.GameObjects.Players[Socket.id] = player;
+				
+			});
 	  	},
 	  	onLogout: function(Socket) {
-	  		// Save this.Players[id];
+	  		this.parent.GameObjects.Players[Socket.id].isLoged = false;
+	  		Database.savePlayer(this.parent.GameObjects.Players[Socket.id]);
 	    	delete this.parent.GameObjects.Players[Socket.id];
 	  	},
 	  	onMovement: function(Socket, dir) {
 	  		var player = this.parent.GameObjects.Players[Socket.id];
-	  		if(player == 'undefined') return;
+	  		if(player == 'undefined') { return; }
 
 	  		var movX = 0; var movY = 0;
 	  		switch(dir) {

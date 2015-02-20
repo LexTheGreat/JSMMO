@@ -1,8 +1,8 @@
 var Player = function() {
   this.Username = ''; // Username for login, sent as ign
+  this.Password = '';
   this.Sprite = "dragon";
   this.Vittles = { health: 100, mana: 100}; // Health | Energy
-  this.Nourishment = { food: 100, water: 100}; // Food | Water
   this.Map = "Spawn";
   this.Position = { x: 100, y: 100, dir: 3, ani: 0 };
   this.isLoged = false; // Has loged in
