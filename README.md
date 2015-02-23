@@ -18,7 +18,7 @@ _How do I, as a developer, start working on the project?_
 
 ## Testing
 
-1. _Enter the working directory and run `node server`_
+1. _Enter the working directory and run `node app`_
 2. _Connect to `yourip:yourport` (localhost:3232)_
 
 ### _How to setup the deployment environment_
