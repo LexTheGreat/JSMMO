@@ -14,10 +14,13 @@ var Network = function() {
 
 	// Data = Status of failed, or boolean true of passed
 	Socket.on('onLogin', function(data) {
-		if(typeof data == "string") {
-			console.log("Login Failed:", data);
-		} else {
+		// IF onLogin is called ilegaly, it would not get sent data
+		// Client side check is OK
+		if(data == true) {
+			console.log("[Socket:sendLogin] Passed:", data);
 			Game.Network.onLogin(data);
+		} else {
+			console.log("[Socket:sendLogin] Failed:", data);
 		}
 	});
 
@@ -26,11 +29,6 @@ var Network = function() {
 			window.Game.NetVar.Players = data.Players;
 		} 
 	});
-
-	this.Send = {
-		parent: this,
-		
-	};
 }
 
 Network.prototype = {
@@ -44,6 +42,9 @@ Network.prototype = {
 		if(dir <= 3 && dir >= -1) { 
 			Socket.emit("onMovement", dir);
 		}
+	},
+	sendReset: function() {
+		Socket.emit("onMovement", -1);
 	}
 }
 

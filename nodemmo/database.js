@@ -38,33 +38,34 @@ Database.prototype = {
 		}
 	},
 	// Players
-	loginCorrect: function(Username, Password) {
-		var userLoginCorrect = false;
-
+	loginCorrect: function(Username, Password, callback) {
 		if(typeof db != "string") {
 			db.serialize(function() {
+				var userLoginCorrect = false;
 				db.each("SELECT * FROM Players", function(err, row) {
-					if(row.Username == Username && row.Password == Password) {
+					if(row.Username == Username && row.Password == Password && !userLoginCorrect) {
 						userLoginCorrect = true
+						return
 					}
+				}, function(err, cntx) {
+					callback(userLoginCorrect);
 				});
 			});
 		}
-		return userLoginCorrect;
 	},
 	// Returns False! Fix something else
 	isNew: function(Username, callback) {
 		if(typeof db != "string") {
 			db.serialize(function() {
-				var foundUser = false;
-
+				var isplayernew = true;
 				db.each("SELECT * FROM Players", function(err, row) {
-					if(row.Username == Username && !foundUser) {
-						foundUser = true;
+					if(row.Username == Username && isplayernew) {
+						isplayernew = false;
 						return;
 					}
+				}, function(err, cntx) {
+					callback(isplayernew);
 				});
-				callback(foundUser);
 			});
 		}
 	},
@@ -85,9 +86,10 @@ Database.prototype = {
 						player.Position.y = row.y;
 						player.Position.dir = row.dir;
 					}
+				}, function(err, cntx) {
+					callback(player)
 				});
-
-				callback(player)
+				
 			});
 		}
 	},

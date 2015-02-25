@@ -93,7 +93,7 @@ var Server = function() {
 			// No password check yet, nothing is saved.
 			var player = "";
 			var self = this;
-			Database.isNew(username, function(userisNew) { 
+			Database.isNew(username, function(userisNew) {
 				if(userisNew) {
 					player = new Player();
 					player.Username = username;
@@ -104,20 +104,20 @@ var Server = function() {
 					Socket.emit('onLogin', true);
 					self.parent.GameObjects.Players[Socket.id] = player;
 				} else {
-					Database.loadPlayer(username, password, function(playerdata) {
-						if(playerdata) {
-							NConsole.writeLine("[" + Socket.id + ":onLogin]: Load Account!");
-							NConsole.writeLine("[" + Socket.id + ":onLogin]: Login Succesful!");
-							Socket.emit('onLogin', true);
-							self.parent.GameObjects.Players[Socket.id] = playerdata;
+					Database.loginCorrect(username, password, function(iscorrect) {
+						if(iscorrect) {
+							Database.loadPlayer(username, password, function(playerdata) {
+								NConsole.writeLine("[" + Socket.id + ":onLogin]: Load Account!");
+								NConsole.writeLine("[" + Socket.id + ":onLogin]: Login Succesful!");
+								Socket.emit('onLogin', true);
+								self.parent.GameObjects.Players[Socket.id] = playerdata;
+							});
 						} else {
 							Socket.emit('onLogin', "Incorect Username or Password!");
 							NConsole.writeLine("[" + Socket.id + ":onLogin]: Login Failed | Incorect Creds!");
 						}
-					});
+					})
 				}
-
-				
 			});
 	  	},
 	  	onLogout: function(Socket) {

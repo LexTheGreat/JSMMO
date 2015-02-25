@@ -125,17 +125,27 @@ window.GameEngine = function() {
 
 	this.GameLoop = {
 		parent: this,
-		MovementCount: 0,
+		didsendReset: false,
 		update: function() {
 			var self = this;
-			//requestAnimationFrame(function() {self.update()});
-			setInterval(function() {
-				if(isMoving) {
-					Network.sendMovement(Dir);
-				}
+			
+			setTimeout(function() {
+        	requestAnimationFrame(function() {self.update()})
+			
 
- 				self.parent.Render.draw();
-    		}, 1000/32);
+			if(isMoving) {
+				Network.sendMovement(Dir);
+				this.didsendReset = false;
+			} else if(!this.didsendReset) {
+				Network.sendReset();
+				this.didsendReset = true
+			}
+ 			
+ 			self.parent.Render.draw();
+    		}, 1000/30);
+			//setInterval(function() {
+				
+    		//}, 500);
 		}
 	};
 

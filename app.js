@@ -96,7 +96,6 @@ Global.Server.sockets.on('connection', function(socket) {
 	});
 });
 
-var tickCount = 0
 ServerLoop = function() {
 	var self = this;
 	for(var SocketID in ClientSocket) {
