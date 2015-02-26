@@ -10,6 +10,8 @@ var Player = function() {
   // Animation Variables
   this.nextAniT = 5;
   this.AniT = 0;
+
+  this.Socket = "";
 };
 
 Player.prototype = {

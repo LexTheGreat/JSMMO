@@ -54,6 +54,8 @@ window.GameEngine = function() {
 		ctx: this.Canvas.getContext('2d'),
 		fps: 0,
 		draw: function() {
+			this.parent.Canvas.width = window.innerWidth;
+            this.parent.Canvas.height = window.innerHeight;
 			this.ctx.clearRect(0, 0, this.parent.Canvas.width, this.parent.Canvas.height);
 			this.ctx.save();
 			// Start Draw objects here
@@ -130,18 +132,18 @@ window.GameEngine = function() {
 			var self = this;
 			
 			setTimeout(function() {
-        	requestAnimationFrame(function() {self.update()})
-			
+	        	requestAnimationFrame(function() {self.update()})
+				
 
-			if(isMoving) {
-				Network.sendMovement(Dir);
-				this.didsendReset = false;
-			} else if(!this.didsendReset) {
-				Network.sendReset();
-				this.didsendReset = true
-			}
- 			
- 			self.parent.Render.draw();
+				if(isMoving) {
+					Network.sendMovement(Dir);
+					this.didsendReset = false;
+				} else if(!this.didsendReset) {
+					Network.sendReset();
+					this.didsendReset = true
+				}
+				
+	 			self.parent.Render.draw();
     		}, 1000/30);
 			//setInterval(function() {
 				

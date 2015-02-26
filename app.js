@@ -39,13 +39,6 @@ if (typeof String.prototype.startsWith != 'function') {
   };
 }
 
-/*var playerToSocket = function(id) {
-	Global.Server.sockets.clients().forEach(function(Socket) {
-		if(Socket.id == id) {
-			return Socket
-		}
-	});
-}*/
 var ClientSocket = {};
 Global.Server.sockets.on('connection', function(socket) {
 	NConsole.writeLine("[" + socket.id + ":connection] Socket Connected!");
@@ -72,7 +65,6 @@ Global.Server.sockets.on('connection', function(socket) {
 			GameServer.Network.onLogin(socket, data.Username, data.Password);
 		}
 	});
-
 	socket.on('onMovement', function(data) {
 		if(typeof data != 'number') {
 			socket.emit('popup', "Incorect Data. Kicked! (Stop Trying to Cheat!)");
@@ -86,7 +78,18 @@ Global.Server.sockets.on('connection', function(socket) {
 		}		
 		GameServer.Network.onMovement(socket, data);
 	});
-
+	socket.on('onMessage', function(data) {
+		if(typeof data != 'string') {
+			socket.emit('popup', "Incorect Data. Kicked! (Stop Trying to Cheat!)");
+			GameServer.Network.kickPlayer(socket);
+			return;
+		}
+		if(data.length > 100 && data.length == 0) { 
+			socket.emit('popup', "Message to length incorect!");
+			return;
+		}
+		GameServer.Network.onMessage(socket, data);
+	});
 	socket.on('disconnect', function() {
 		NConsole.writeLine("[" + socket.id + ":disconnect]: Disconnected!");
 		if(typeof GameServer.GameObjects.Players[socket.id] != "undefined") {
@@ -97,16 +100,18 @@ Global.Server.sockets.on('connection', function(socket) {
 });
 
 ServerLoop = function() {
-	var self = this;
-	for(var SocketID in ClientSocket) {
-		if(SocketID != 'undefined') {
-			var Socket = ClientSocket[SocketID];
-			if(Socket != 'undefined') {
-				GameServer.pFunc.sendPlayers(Socket);
+	setTimeout(function() {
+		var self = this;
+		for(var SocketID in ClientSocket) {
+			if(SocketID != 'undefined') {
+				var Socket = ClientSocket[SocketID];
+				if(Socket != 'undefined') {
+					GameServer.pFunc.sendPlayers(Socket);
+				}
 			}
 		}
-	}
-	setImmediate(ServerLoop)
+		setImmediate(ServerLoop)
+	}, 1000/30);
 }
 setImmediate(ServerLoop)
 

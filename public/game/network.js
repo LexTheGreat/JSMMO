@@ -2,6 +2,17 @@ $(function() {
 	window.Socket = false;
 	window.Network = new Network();
 	window.Game = new GameEngine();
+
+	$('#chatBox').bind("enterKey",function(e){
+		Socket.emit('onMessage', $('#chatBox').val());
+		$('#chatBox').val("");
+	});
+	$('#chatBox').keyup(function(e){
+	    if(e.keyCode == 13)
+	    {
+	        $(this).trigger("enterKey");
+	    }
+	});
 });
 
 var Network = function() {
@@ -29,6 +40,14 @@ var Network = function() {
 			window.Game.NetVar.Players = data.Players;
 		} 
 	});
+
+	Socket.on('onMessage', function(data) {
+		$( "#chatLog" ).append( "<p><xmp>" + data.Sender + ": " + data.Message + "</xmp></p>" );
+	});
+
+	Socket.on('popup', function(data) {
+		alert("Server: " + data);
+	});
 }
 
 Network.prototype = {
@@ -45,6 +64,6 @@ Network.prototype = {
 	},
 	sendReset: function() {
 		Socket.emit("onMovement", -1);
-	}
+	},
 }
 

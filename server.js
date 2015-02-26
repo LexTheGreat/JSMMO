@@ -39,19 +39,7 @@ var Server = function() {
 			}
 			return false
 		},
-		// Do Stuff to Player
-		sendMessage: function(Socket, _Message) {
-			var Player = this.getPlayer(Socket.id);
-			for(var gPlayerID in this.parent.GameObjects.Players) {
-				var gPlayer = this.parent.GameObjects.Players[gPlayerID]
-				if(this.isPlaying(gPlayer) && Player.Map == gPlayer.Map) {
-					var gSocket = gPlayer.Socket;
-					gSocket.emit('onMessage', {Sender:Player.Username, Message:_Message});
-				}
-			}
-
-			Global.writeLine(Player.Username, ":", _Message);
-		},
+		// Do Stuff for Player
 		sendPlayers: function(Socket) {
 			var Player = this.parent.GameObjects.Players[Socket.id];
 			if(this.isPlaying(Player)) {
@@ -74,6 +62,20 @@ var Server = function() {
 			Socket.disconnect();
 		},
 		onMessage: function(Socket, Message) {
+			if(Message.startsWith("!")) {
+
+			} else {
+				var Player = this.parent.GameObjects.Players[Socket.id];
+				for(var gPlayerID in this.parent.GameObjects.Players) {
+					var gPlayer = this.parent.GameObjects.Players[gPlayerID]
+					if(this.parent.pFunc.isPlaying(gPlayer) && Player.Map == gPlayer.Map) {
+						var gSocket = gPlayer.Socket;
+						gSocket.emit('onMessage', {Sender:Player.Username, Message:Message});
+					}
+				}
+				NConsole.writeLine("M[" + Player.Username +  ": " + Message + "]");
+			}
+
 			/*if(Message.startsWith("!")) {
 				var Command = Message.substring(1).split("-");
 				switch(Command[0].toLowerCase()) {
@@ -87,7 +89,7 @@ var Server = function() {
 			}*/
 		},
 		onConnect: function(Socket) {
-			var player = new Player(); this.parent.GameObjects.Players[Socket.id] = player; // Create Blank player, has not loged in
+			var player = new Player(); player.Socket = Socket; this.parent.GameObjects.Players[Socket.id] = player; // Create Blank player, has not loged in
 		},
 		onLogin: function(Socket, username, password) {
 			// No password check yet, nothing is saved.
@@ -99,6 +101,7 @@ var Server = function() {
 					player.Username = username;
 					player.Password = password;
 					player.isLoged = true;
+					player.Socket = Socket;
 					NConsole.writeLine("[" + Socket.id + ":onLogin]: New Account!");
 					NConsole.writeLine("[" + Socket.id + ":onLogin]: Login Succesful!");
 					Socket.emit('onLogin', true);
@@ -109,6 +112,7 @@ var Server = function() {
 							Database.loadPlayer(username, password, function(playerdata) {
 								NConsole.writeLine("[" + Socket.id + ":onLogin]: Load Account!");
 								NConsole.writeLine("[" + Socket.id + ":onLogin]: Login Succesful!");
+								playerdata.Socket = Socket;
 								Socket.emit('onLogin', true);
 								self.parent.GameObjects.Players[Socket.id] = playerdata;
 							});
