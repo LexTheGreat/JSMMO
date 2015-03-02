@@ -2,6 +2,7 @@ var Player = function() {
   this.Username = ''; // Username for login, sent as ign
   this.Password = '';
   this.Sprite = "dragon";
+  this.Access = 0;
   this.Vittles = { health: 100, mana: 100}; // Health | Energy
   this.Map = "Spawn";
   this.Position = { x: 100, y: 100, dir: 3, ani: 0 };
@@ -15,6 +16,18 @@ var Player = function() {
 };
 
 Player.prototype = {
+	isMod: function() {
+		if(this.Access >= 1) return true;
+	},
+	isAdmin: function() {
+		if(this.Access >= 2) return true;
+	},
+	getHtmlName: function() {
+		var Sty = "color: #000000;";
+		if(this.isMod()) { Sty = "color: #33CC33;font-weight:bold;"; }
+		if(this.isAdmin()) { Sty = "color: #FF3300;font-weight:bold;"; }
+		return '<name style="' + Sty + '">' + this.Username + '</name>'
+	},
 	nextAni: function() {
 		if(this.AniT != this.nextAniT) {
 			this.AniT += 1;

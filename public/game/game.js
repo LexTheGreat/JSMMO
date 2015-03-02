@@ -119,7 +119,7 @@ window.GameEngine = function() {
 		drawPlayers: function(ctx) {
 			for(var obj in this.parent.NetVar.Players) {
 				var player = this.parent.NetVar.Players[obj];
-				this.drawNameText(ctx, player.Username, "#FFFFFF", player.Position.x+(96/2), player.Position.y-100);
+				this.drawNameText(ctx, player.Username, "#000", player.Position.x+(96/2), player.Position.y-100);
 				this.drawSprite(ctx, player.Sprite, player.Position.x, player.Position.y, player.Position.dir, player.Position.ani)
 			}
 		}
@@ -144,7 +144,7 @@ window.GameEngine = function() {
 				}
 				
 	 			self.parent.Render.draw();
-    		}, 1000/30);
+    		}, 1000/60);
 			//setInterval(function() {
 				
     		//}, 500);

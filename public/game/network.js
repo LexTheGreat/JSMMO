@@ -31,6 +31,7 @@ var Network = function() {
 			console.log("[Socket:sendLogin] Passed:", data);
 			Game.Network.onLogin(data);
 		} else {
+			alert(data);
 			console.log("[Socket:sendLogin] Failed:", data);
 		}
 	});
@@ -38,15 +39,23 @@ var Network = function() {
 	Socket.on('onPlayers', function(data) {
 		if(typeof data == 'object') {
 			window.Game.NetVar.Players = data.Players;
-		} 
+		}
 	});
 
 	Socket.on('onMessage', function(data) {
-		$( "#chatLog" ).append( "<p><xmp>" + data.Sender + ": " + data.Message + "</xmp></p>" );
+		$( "#chatLog" ).append( "<p>" + data.Sender + ": " + data.Message + "</p>" );
 	});
 
 	Socket.on('popup', function(data) {
 		alert("Server: " + data);
+	});
+
+	Socket.on('onNotice', function(data) {
+		$('#Notice').text(data)
+
+		setTimeout(function(){ 
+			$('#Notice').text("")
+		}, 30000);
 	});
 }
 

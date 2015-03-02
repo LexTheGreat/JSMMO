@@ -53,6 +53,42 @@ var Server = function() {
 				Socket.emit("onPlayers", {Players:sfPlayers});
 			}
 		},
+		sendMapMessage: function(Socket, Message) {
+			var Player = this.parent.GameObjects.Players[Socket.id];
+			for(var gPlayerID in this.parent.GameObjects.Players) {
+				var gPlayer = this.parent.GameObjects.Players[gPlayerID]
+				if(this.isPlaying(gPlayer) && Player.Map == gPlayer.Map) {
+					var gSocket = gPlayer.Socket;
+					gSocket.emit('onMessage', {Sender:Player.getHtmlName(), Message:Message});
+				}
+			}
+		},
+		sendGlobalMessage: function(Socket, Message) {
+			var Player = this.parent.GameObjects.Players[Socket.id];
+			for(var gPlayerID in this.parent.GameObjects.Players) {
+				var gPlayer = this.parent.GameObjects.Players[gPlayerID]
+				if(this.isPlaying(gPlayer)) {
+					var gSocket = gPlayer.Socket;
+					gSocket.emit('onMessage', {Sender:Player.getHtmlName(), Message:Message});
+				}
+			}
+		},
+		// TODO, Anounce Message. Not normal message. Scrolling right to left on top???
+		sendNotice: function(Message) {
+			for(var gPlayerID in this.parent.GameObjects.Players) {
+				var gPlayer = this.parent.GameObjects.Players[gPlayerID]
+				if(this.isPlaying(gPlayer)) {
+					var gSocket = gPlayer.Socket;
+					gSocket.emit('onNotice', Message);
+				}
+			}
+		},
+		sendServerMessageTo: function(Socket, Message) {
+			Socket.emit("onMessage", {Sender:"Server", Message:Message})
+		},
+		sendServerMessage: function(Message) {
+
+		},
 	};
 
 	this.Network = {
@@ -62,18 +98,35 @@ var Server = function() {
 			Socket.disconnect();
 		},
 		onMessage: function(Socket, Message) {
-			if(Message.startsWith("!")) {
+			var Player = this.parent.GameObjects.Players[Socket.id];
 
-			} else {
-				var Player = this.parent.GameObjects.Players[Socket.id];
-				for(var gPlayerID in this.parent.GameObjects.Players) {
-					var gPlayer = this.parent.GameObjects.Players[gPlayerID]
-					if(this.parent.pFunc.isPlaying(gPlayer) && Player.Map == gPlayer.Map) {
-						var gSocket = gPlayer.Socket;
-						gSocket.emit('onMessage', {Sender:Player.Username, Message:Message});
-					}
+			Message = Message.replace('<','&lt;').replace('>', '&gt;');
+			if(Message.startsWith("!")) {
+				var Command = Message.substring(1).split(" ");
+				switch(Command[0].toLowerCase()) {
+					case "notice":
+						if(Player.isMod()) {
+							this.parent.pFunc.sendNotice(Message.substring(8));
+						}
+					break;
+					case "g":
+						if(Player.isMod()) {
+							this.parent.pFunc.sendGlobalMessage(Socket, Message.substring(3));
+						}
+					break;
+					case "kick":
+						if(Player.isMod()) {
+							NConsole.writeLine(Player.Username + " kicked " + Command[1]);
+						}
+					break;
+					case "ban":
+						if(Player.isAdmin()) {
+							NConsole.writeLine(Player.Username + " banished " + Command[1]);
+						}
 				}
-				NConsole.writeLine("M[" + Player.Username +  ": " + Message + "]");
+			} else {
+				this.parent.pFunc.sendMapMessage(Socket, Message);
+				NConsole.writeLine(Player.Username +  ": " + Message);
 			}
 
 			/*if(Message.startsWith("!")) {
