@@ -20,6 +20,9 @@ _How do I, as a developer, start working on the project?_
 
 1. _Enter the working directory and run `node app`_
 2. _Connect to `yourip:yourport` (localhost:3232)_
+3. _Login with any username / Password_
+4. _Logout to save userdata_
+5. _Open Server.db with an sqlite editor and change your access to 1 for mod, or 2 for admin_
 
 ### _How to setup the deployment environment_
 
