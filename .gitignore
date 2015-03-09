@@ -1,18 +1,5 @@
-__MACOSX
 .DS_Store
 
-# OS Files #
-############
-*/.DS_Store
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-Icon?
-*.db
-
-# Packages #
 *.7z
 *.dmg
 *.gz
