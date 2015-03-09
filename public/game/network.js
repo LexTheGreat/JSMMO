@@ -44,6 +44,7 @@ var Network = function() {
 
 	Socket.on('onMessage', function(data) {
 		$( "#chatLog" ).append( "<p>" + data.Sender + ": " + data.Message + "</p>" );
+		$("#chatLog").animate({ scrollTop: $("#chatLog")[0].scrollHeight}, 100);
 	});
 
 	Socket.on('popup', function(data) {
@@ -51,7 +52,7 @@ var Network = function() {
 	});
 
 	Socket.on('onNotice', function(data) {
-		$('#Notice').text(data)
+		typewrite.Console.writeline(data);
 
 		setTimeout(function(){ 
 			$('#Notice').text("")

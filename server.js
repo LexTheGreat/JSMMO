@@ -84,7 +84,7 @@ var Server = function() {
 			}
 		},
 		sendServerMessageTo: function(Socket, Message) {
-			Socket.emit("onMessage", {Sender:"Server", Message:Message})
+			Socket.emit("onMessage", {Sender:"<name style='color: #FF3300;font-weight:bold;'>Server</name>", Message:"<message style='color: #33CC33;font-weight:bold;'>" + Message + "</message>"})
 		},
 		sendServerMessage: function(Message) {
 
@@ -104,6 +104,21 @@ var Server = function() {
 			if(Message.startsWith("!")) {
 				var Command = Message.substring(1).split(" ");
 				switch(Command[0].toLowerCase()) {
+					case "help":
+						this.parent.pFunc.sendServerMessageTo(Socket, "= Help =");
+						this.parent.pFunc.sendServerMessageTo(Socket, "!help ~ This Menu");
+						if(Player.isMod) {
+							this.parent.pFunc.sendServerMessageTo(Socket, "= Mod Menu =");
+							this.parent.pFunc.sendServerMessageTo(Socket, "!notice <msg> ~ Send Notice Message");
+							this.parent.pFunc.sendServerMessageTo(Socket, "!g <msg> ~ Send Global Message");
+							this.parent.pFunc.sendServerMessageTo(Socket, "!kick <name> <reason> ~ Kick player with reason");
+						}
+						if(Player.isAdmin()) {
+							this.parent.pFunc.sendServerMessageTo(Socket, "= Admin Menu =");
+							this.parent.pFunc.sendServerMessageTo(Socket, "!ban <name> <reason> ~ Banish player with reason");
+						}
+						this.parent.pFunc.sendServerMessageTo(Socket, "= End =");
+					break;
 					case "notice":
 						if(Player.isMod()) {
 							this.parent.pFunc.sendNotice(Message.substring(8));
@@ -123,6 +138,10 @@ var Server = function() {
 						if(Player.isAdmin()) {
 							NConsole.writeLine(Player.Username + " banished " + Command[1]);
 						}
+					break;
+					default:
+						this.parent.pFunc.sendServerMessageTo(Socket, "Invaild Command. (" + Message + ")");
+					break;
 				}
 			} else {
 				this.parent.pFunc.sendMapMessage(Socket, Message);

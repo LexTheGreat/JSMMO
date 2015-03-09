@@ -1,5 +1,11 @@
+# Ignore Mac Files #
 .DS_Store
 
+# Ignore Node Stuff
+node_modules/
+
+# Ignore arcives & Database #
+*.db
 *.7z
 *.dmg
 *.gz
