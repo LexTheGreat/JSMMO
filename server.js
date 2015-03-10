@@ -238,8 +238,6 @@ var Server = function() {
 	  				break;
 	  		}
 
-	  		console.log("Start Movement: ", dir);
-
 	  		player.end = false;
 	  		player.movDir = dir;
 	  		player.movY = movY;
@@ -249,38 +247,11 @@ var Server = function() {
 	  		var player = this.parent.GameObjects.Players[Socket.id];
 	  		if(player == 'undefined') { return; }
 	  		if(!dataCheck) { return; }
-
-	  		console.log("Stop Movement");
+	  		
 	  		player.end = true;
 	  		player.movDir = false;
 	  		player.movY = 0;
 	  		player.movX = 0;
-	  	},
-	  	onMovement: function(Socket, dir) {
-	  		var player = this.parent.GameObjects.Players[Socket.id];
-	  		if(player == 'undefined') { return; }
-
-	  		var movX = 0; var movY = 0;
-	  		switch(dir) {
-	  			case 0:
-	  				movY = 1
-	  				break;
-	  			case 1:
-	  				movX = -1
-	  				break;
-	  			case 2:
-	  				movX = 1
-	  				break;
-	  			case 3:
-	  				movY = -1
-	  				break;
-	  		}
-	  		if(dir == -1) {
-	  			player.endAni();
-	  		} else {
-	  			player.chgDir(dir);player.moveX(movX*5);player.moveY(movY*5);player.nextAni();
-	  		}
-	  		
 	  	},
 	}
 
