@@ -8,6 +8,11 @@ var Player = function() {
   this.Position = { x: 100, y: 100, dir: 3, ani: 0 };
   this.isLoged = false; // Has loged in
 
+  this.end = false;
+  this.movY = 0;
+  this.movX = 0;
+  this.movDir = -1;
+
   // Animation Variables
   this.nextAniT = 5;
   this.AniT = 0;

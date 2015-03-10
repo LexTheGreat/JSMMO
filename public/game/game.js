@@ -127,21 +127,12 @@ window.GameEngine = function() {
 
 	this.GameLoop = {
 		parent: this,
-		didsendReset: false,
+		shouldSendStop: false,
 		update: function() {
 			var self = this;
 			
 			setTimeout(function() {
 	        	requestAnimationFrame(function() {self.update()})
-				
-
-				if(isMoving) {
-					Network.sendMovement(Dir);
-					this.didsendReset = false;
-				} else if(!this.didsendReset) {
-					Network.sendReset();
-					this.didsendReset = true
-				}
 				
 	 			self.parent.Render.draw();
     		}, 1000/60);
@@ -209,21 +200,24 @@ function onKeyDown(event) {
 
 	switch(code) {
 		case 83:
-			if(Dir == -1) Dir = 0;
+			if(!isMoving) Dir = 0;
 			break;
 		case 68:
-			if(Dir == -1) Dir = 2;
+			if(!isMoving) Dir = 2;
 			break;
 		case 87:
-		 	if(Dir == -1) Dir = 3;
+		 	if(!isMoving) Dir = 3;
 			break;
 		case 65:
-			if(Dir == -1) Dir = 1;
+			if(!isMoving) Dir = 1;
 			break;
 	}
 
 	if(code == 83 || code == 68 || code == 87 || code == 65) {
-		isMoving = true
+		if(!isMoving) {
+			Network.sendStartMovement(Dir);
+			isMoving = true;
+		}
 	}
 }
 
@@ -235,8 +229,10 @@ function onKeyUp(event) {
 
 	// Movement Keys
 	if(code == 83 || code == 68 || code == 87 || code == 65) {
-		Dir = -1;
-		isMoving = false
+		if(isMoving) {
+			Network.sendStopMovement(true);
+			isMoving = false;
+		}
 	}
 }
 

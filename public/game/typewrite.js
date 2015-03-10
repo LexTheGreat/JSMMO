@@ -51,7 +51,7 @@ var _Console = function() {
                 }, speed * i);
             });
             setTimeout(function() {
-                $('#Notice').html($('#Notice').html() + "<br>");
+                $('#Notice').html($('#Notice').html());
                 if (message == ".c") {
                     $('#Notice').html("");
                 };

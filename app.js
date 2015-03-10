@@ -72,20 +72,29 @@ Global.Server.sockets.on('connection', function(socket) {
 			GameServer.Network.onLogin(socket, data.Username, data.Password);
 		}
 	});
-	socket.on('onMovement', function(data) {
+	socket.on('onStartMovement', function(data) {
 		if(typeof data != 'number') {
 			socket.emit('popup', "Incorect Data. Kicked! (Stop Trying to Cheat!)");
 			NConsole.writeLine("[" + socket.id + ":AntiPacket]: Socket sent incorect Data! (" + data + ")");
 			GameServer.Network.kickPlayer(socket);
 			return;
 		}
-		if(data > 3 && data < -1) { 
+		if(data > 3 && data < 0) { 
 			socket.emit('popup', "Incorect Data. Kicked! (Stop Trying to Cheat!)");
 			NConsole.writeLine("[" + socket.id + ":AntiPacket]: Socket sent incorect Data! (" + data + ")");
 			GameServer.Network.kickPlayer(socket);
 			return;
 		}		
-		GameServer.Network.onMovement(socket, data);
+		GameServer.Network.onStartMovement(socket, data);
+	});
+	socket.on('onStopMovement', function(data) {
+		if(typeof data != "boolean") {
+			socket.emit("onNotice", "Incorect Data. Kicked (Stop Trying to Cheat!)");
+			NConsole.writeLine("[" + socket.id + ":AntiPacket]: Socket sent incorect Data! (" + data + ")");
+			GameServer.Network.kickPlayer(socket);
+			return;
+		}
+		GameServer.Network.onStopMovement(socket, data);
 	});
 	socket.on('onMessage', function(data) {
 		if(typeof data != 'string') {
@@ -116,6 +125,7 @@ ServerLoop = function() {
 			if(SocketID != 'undefined') {
 				var Socket = ClientSocket[SocketID];
 				if(Socket != 'undefined') {
+					GameServer.loop.doMovement(Socket);
 					GameServer.pFunc.sendPlayers(Socket);
 				}
 			}

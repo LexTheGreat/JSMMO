@@ -67,10 +67,13 @@ Network.prototype = {
 		console.log("[Socket:sendLogin] Username:",_Username,"Password:",_Password)
 		Socket.emit("onLogin", { Username:_Username, Password:_Password })
 	},
-	sendMovement: function(dir) {
-		if(dir <= 3 && dir >= -1) { 
-			Socket.emit("onMovement", dir);
+	sendStartMovement: function(dir) {
+		if(dir <= 3 && dir >= 0) {
+			Socket.emit("onStartMovement", dir);
 		}
+	},
+	sendStopMovement: function(dataPass) {
+		Socket.emit("onStopMovement", dataPass);
 	},
 	sendReset: function() {
 		Socket.emit("onMovement", -1);

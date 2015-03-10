@@ -16,6 +16,22 @@ var Server = function() {
 		Maps: {},
 	};
 
+	this.loop = {
+		parent: this,
+		doMovement: function(Socket) {
+			var player = this.parent.GameObjects.Players[Socket.id];
+	  		if(player == 'undefined') { return; }
+
+	  		if(this.parent.pFunc.isPlaying(player)) {
+	  			if(player.end) {
+	  				player.endAni();
+	  			} else {
+	  				player.chgDir(player.movDir);player.moveX(player.movX*5);player.moveY(player.movY*5);player.nextAni();
+	  			}
+	  		}
+		}
+	};
+
 	this.pFunc = {
 		parent: this,
 		// Get Player
@@ -200,6 +216,45 @@ var Server = function() {
 	  		this.parent.GameObjects.Players[Socket.id].isLoged = false;
 	  		Database.savePlayer(this.parent.GameObjects.Players[Socket.id]);
 	    	delete this.parent.GameObjects.Players[Socket.id];
+	  	},
+	  	onStartMovement: function(Socket, dir) {
+	  		var player = this.parent.GameObjects.Players[Socket.id];
+	  		if(player == 'undefined') { return; }
+
+	  		var movY = 0;
+	  		var movX = 0;
+	  		switch(dir) {
+	  			case 0:
+	  				movY = 1
+	  				break;
+	  			case 1:
+	  				movX = -1
+	  				break;
+	  			case 2:
+	  				movX = 1
+	  				break;
+	  			case 3:
+	  				movY = -1
+	  				break;
+	  		}
+
+	  		console.log("Start Movement: ", dir);
+
+	  		player.end = false;
+	  		player.movDir = dir;
+	  		player.movY = movY;
+	  		player.movX = movX;
+	  	},
+	  	onStopMovement: function(Socket, dataCheck) {
+	  		var player = this.parent.GameObjects.Players[Socket.id];
+	  		if(player == 'undefined') { return; }
+	  		if(!dataCheck) { return; }
+
+	  		console.log("Stop Movement");
+	  		player.end = true;
+	  		player.movDir = false;
+	  		player.movY = 0;
+	  		player.movX = 0;
 	  	},
 	  	onMovement: function(Socket, dir) {
 	  		var player = this.parent.GameObjects.Players[Socket.id];
