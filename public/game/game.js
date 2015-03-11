@@ -16,6 +16,7 @@ window.GameEngine = function() {
 
 	this.GUI = {
 		parent: this,
+		miniButtonToggle: true,
 		hide: function(obj) {
 			$("#" + obj).hide();
 		},
@@ -24,6 +25,22 @@ window.GameEngine = function() {
 		},
 		toggle: function(obj) {
 			$("#" + obj).toggle();
+		},
+		//
+		miniButtonClick: function() {
+			if(this.miniButtonToggle) {
+				$("#miniButton").text("-");
+				$("#chatLog").animate({ "height": 0}, 1000, function(){
+				  $(this).css('height',0);
+				});
+			} else {
+				$("#miniButton").text("+");
+				$("#chatLog").animate({ "height": 200}, 1000, function(){
+				  $(this).css('height',200);
+				});
+			}
+
+			this.miniButtonToggle = !this.miniButtonToggle;
 		}
 	};
 
