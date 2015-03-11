@@ -1,10 +1,14 @@
 window.GameEngine = function() {
 	this.Canvas = document.getElementById('gameCanvas'); this.Canvas.width = window.innerWidth; this.Canvas.height = window.innerHeight;
 
+	this.gameWidth = window.innerWidth;
+	this.gameheight = window.innerHeight;
+
 	this.Canvas.addEventListener("keydown", onKeyDown, false);
 	this.Canvas.addEventListener("keyup", onKeyUp, false);
 
 	this.NetVar = {
+		netMessage: "",
 		myIndex: "",
 		isOnline: false,
 		Players: {} // Needs something in there..
@@ -61,6 +65,7 @@ window.GameEngine = function() {
 			// Start Draw objects here
 			this.parent.DrawnObject.drawPlayers(this.ctx)
 			this.parent.DrawnObject.drawFPS(this.ctx, this.fps);
+			if(this.parent.NetVar.netMessage.length > 0) { this.parent.DrawnObject.drawNetMessage(this.ctx) };
 			// End Draw Objects Here
 			this.ctx.restore();
 			this.fps = this.parent.FPS.getFPS();
@@ -70,6 +75,7 @@ window.GameEngine = function() {
 	// this.Text = this.RenderObjects.textObject()
 	this.DrawnObject = {
 		parent: this,
+		netMessageToggle: false,
 		// Text
 		drawText: function(ctx, text, x, y, color) {
 			color = typeof color !== 'undefined' ? color : "black";
@@ -122,6 +128,18 @@ window.GameEngine = function() {
 				this.drawNameText(ctx, player.Username, "#000", player.Position.x+(96/2), player.Position.y-100);
 				this.drawSprite(ctx, player.Sprite, player.Position.x, player.Position.y, player.Position.dir, player.Position.ani)
 			}
+		},
+		drawNetMessage: function(ctx) {
+			this.netMessageToggle += 1;
+			
+			if (this.netMessageToggle >= 15) {
+				color = "green";
+			} else {
+				color = "red";
+			}
+
+			if (this.netMessageToggle >= 30) { this.netMessageToggle = 0; }
+			this.drawText(ctx, this.parent.NetVar.netMessage, this.parent.gameWidth/2, 15, color);
 		}
 	}
 
@@ -136,9 +154,6 @@ window.GameEngine = function() {
 				
 	 			self.parent.Render.draw();
     		}, 1000/60);
-			//setInterval(function() {
-				
-    		//}, 500);
 		}
 	};
 
@@ -191,6 +206,7 @@ function del(array, obj) {
 
 var Dir = -1;
 var isMoving = false;
+var heldKey = 0;
 function onKeyDown(event) {
 	var self = this;
 	var code = event.keyCode || event.which;
@@ -215,6 +231,7 @@ function onKeyDown(event) {
 
 	if(code == 83 || code == 68 || code == 87 || code == 65) {
 		if(!isMoving) {
+			heldKey = code;
 			Network.sendStartMovement(Dir);
 			isMoving = true;
 		}
@@ -229,7 +246,7 @@ function onKeyUp(event) {
 
 	// Movement Keys
 	if(code == 83 || code == 68 || code == 87 || code == 65) {
-		if(isMoving) {
+		if(isMoving && heldKey == code) {
 			Network.sendStopMovement(true);
 			isMoving = false;
 		}

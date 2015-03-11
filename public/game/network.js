@@ -52,10 +52,11 @@ var Network = function() {
 	});
 
 	Socket.on('onNotice', function(data) {
-		typewrite.Console.writeline(data);
+		Game.NetVar.netMessage = data;
+		//typewrite.Console.writeline(data);
 
 		setTimeout(function(){ 
-			$('#Notice').text("")
+			Game.NetVar.netMessage = "";
 		}, 30000);
 	});
 }
