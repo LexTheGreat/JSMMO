@@ -22,10 +22,24 @@ var Server = function() {
 			var player = this.parent.GameObjects.Players[Socket.id];
 	  		if(player == 'undefined') { return; }
 
+	  		var didHit = false;
 	  		if(this.parent.pFunc.isPlaying(player)) {
+	  			if(player.Position.x + player.movX*5 >= 500-49) {
+	  				return;
+	  			}
+	  			if(player.Position.x + player.movX*5 <= 49) {
+		  			return;
+	  			}
+	  			if(player.Position.y + player.movY*5 >= 500-49) {
+	  				return;
+	  			}
+	  			if(player.Position.y + player.movY*5 <= 49) {
+		  			return;
+	  			}
+
 	  			if(player.end) {
 	  				player.endAni();
-	  			} else {
+	  			} else if(!didHit) {
 	  				player.chgDir(player.movDir);player.moveX(player.movX*5);player.moveY(player.movY*5);player.nextAni();
 	  			}
 	  		}
@@ -63,7 +77,7 @@ var Server = function() {
 				for(var gPlayerID in this.parent.GameObjects.Players) {
 					var gPlayer = this.parent.GameObjects.Players[gPlayerID]
 					if(this.isPlaying(gPlayer) && Player.Map == gPlayer.Map) {
-						sfPlayers.push({id:gPlayer.id, Username:gPlayer.Username, Sprite:gPlayer.Sprite, Vittles:gPlayer.Vittles, Nourishment:gPlayer.Nourishment, Position:gPlayer.Position});
+						sfPlayers.push({ID:gPlayerID, Username:gPlayer.Username, Sprite:gPlayer.Sprite, Vittles:gPlayer.Vittles, Nourishment:gPlayer.Nourishment, Position:gPlayer.Position});
 					}
 				}
 				Socket.emit("onPlayers", {Players:sfPlayers});
@@ -123,7 +137,7 @@ var Server = function() {
 					case "help":
 						this.parent.pFunc.sendServerMessageTo(Socket, "= Help =");
 						this.parent.pFunc.sendServerMessageTo(Socket, "!help ~ This Menu");
-						if(Player.isMod) {
+						if(Player.isMod()) {
 							this.parent.pFunc.sendServerMessageTo(Socket, "= Mod Menu =");
 							this.parent.pFunc.sendServerMessageTo(Socket, "!notice <msg> ~ Send Notice Message");
 							this.parent.pFunc.sendServerMessageTo(Socket, "!g <msg> ~ Send Global Message");

@@ -17,16 +17,12 @@ $(function() {
 
 var Network = function() {
 	window.Socket = io.connect();
-	// Data = ID
 	Socket.on('onConnect', function(data) {
 		Game.Network.onConnect(data);
 		console.log("[Socket:Connected] ID:", data);
 	});
 
-	// Data = Status of failed, or boolean true of passed
 	Socket.on('onLogin', function(data) {
-		// IF onLogin is called ilegaly, it would not get sent data
-		// Client side check is OK
 		if(data == true) {
 			console.log("[Socket:sendLogin] Passed:", data);
 			Game.Network.onLogin(data);

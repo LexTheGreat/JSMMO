@@ -4,12 +4,17 @@ window.GameEngine = function() {
 	this.gameWidth = window.innerWidth;
 	this.gameheight = window.innerHeight;
 
+	this.gameLock = "";
+	this.gameOffsetX = 0;
+	this.gameOffsetY = 0;
+
 	this.Canvas.addEventListener("keydown", onKeyDown, false);
 	this.Canvas.addEventListener("keyup", onKeyUp, false);
 
 	this.NetVar = {
 		netMessage: "",
 		myIndex: "",
+		myID: 0,
 		isOnline: false,
 		Players: {} // Needs something in there..
 	};
@@ -68,6 +73,25 @@ window.GameEngine = function() {
 				Socket.emit("onMovement", this.dir);
 			}
 		},
+
+		getDistance: function(x, y) {
+			var myX = 0;
+			var myY = 0;
+			for(var obj in this.parent.NetVar.Players) {
+				var player = this.parent.NetVar.Players[obj];
+				if(player.ID == this.parent.NetVar.myIndex) {
+					myX = player.Position.x;
+					myY = player.Position.y;
+					break;
+				}
+			}
+			
+			var object = {}
+			object.distX = myX - x;
+			object.distY = myY - y;
+
+			return object;
+		}
 	};
 
 	this.Render = {
@@ -80,7 +104,8 @@ window.GameEngine = function() {
 			this.ctx.clearRect(0, 0, this.parent.Canvas.width, this.parent.Canvas.height);
 			this.ctx.save();
 			// Start Draw objects here
-			this.parent.DrawnObject.drawPlayers(this.ctx)
+			this.parent.DrawnObject.drawTile(this.ctx);
+			this.parent.DrawnObject.drawPlayers(this.ctx);
 			this.parent.DrawnObject.drawFPS(this.ctx, this.fps);
 			if(this.parent.NetVar.netMessage.length > 0) { this.parent.DrawnObject.drawNetMessage(this.ctx) };
 			// End Draw Objects Here
@@ -94,6 +119,19 @@ window.GameEngine = function() {
 		parent: this,
 		netMessageToggle: false,
 		// Text
+		drawTile: function(ctx) {
+			var wh = 500;
+
+			var drawX = window.innerWidth/2;
+			var drawY = window.innerHeight/2;
+
+			var dist = this.parent.Movement.getDistance(0, 0);
+			drawX -= dist.distX;
+			drawY -= dist.distY;
+
+			ctx.fillStyle="#FF0000";
+			ctx.fillRect(drawX,drawY,wh,wh);
+		},
 		drawText: function(ctx, text, x, y, color) {
 			color = typeof color !== 'undefined' ? color : "black";
 			ctx.fillStyle = color;
@@ -134,16 +172,28 @@ window.GameEngine = function() {
 
 			var frameY = d*h;
 			var frameX = f*w;
-			var posX = x;
-			var posY = y - h;
+			var posX = x-49;
+			var posY = y-49;
 
 			ctx.drawImage(Cache.getImage("img/sprite/" + sprite + ".png"), frameX, frameY, w, h, posX, posY, w, h);
 		},
 		drawPlayers: function(ctx) {
 			for(var obj in this.parent.NetVar.Players) {
 				var player = this.parent.NetVar.Players[obj];
-				this.drawNameText(ctx, player.Username, "#000", player.Position.x+(96/2), player.Position.y-100);
-				this.drawSprite(ctx, player.Sprite, player.Position.x, player.Position.y, player.Position.dir, player.Position.ani)
+				
+
+				var drawX = window.innerWidth/2;
+				var drawY = window.innerHeight/2;
+				if(player.ID == this.parent.NetVar.myIndex) {
+					// Nothing
+				} else {
+					var dist = this.parent.Movement.getDistance(player.Position.x, player.Position.y);
+					drawX -= dist.distX;
+					drawY -= dist.distY;
+				}
+
+				this.drawNameText(ctx, player.Username, "#000", drawX, drawY-49);
+				this.drawSprite(ctx, player.Sprite, drawX, drawY, player.Position.dir, player.Position.ani)
 			}
 		},
 		drawNetMessage: function(ctx) {
@@ -194,8 +244,8 @@ window.GameEngine = function() {
 
 	this.Network = {
 		parent: this,
-		onConnect: function(id) {
-			this.parent.NetVar.myIndex = id;
+		onConnect: function(index) {
+			this.parent.NetVar.myIndex = index;
 		},
 		onLogin: function() {
 			this.parent.NetVar.isOnline = true;
